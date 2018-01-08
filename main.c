@@ -126,8 +126,8 @@ void paintEnemy(){
     {
         if(i < 5)
         {
-            //if(enemy[i]==1)
-            //{
+        if(enemy[i]==1)
+            {
                 if (i!=0)
                 {
                     mvprintw(middleY + 2, (distance * (i+5)) + 1,"\\-.-/");
@@ -136,11 +136,11 @@ void paintEnemy(){
                 {
                     mvprintw(middleY + 2, (distance * (i+5)) + 1,"(/-1-\\)");  
                 }
-            //}
-            //else
-            //{
-            //    mvprintw(middleY + 2, (distance * (i+5)) + 1,"     ");
-            //}
+            }
+            else
+            {
+                mvprintw(middleY + 2, (distance * (i+5)) + 1,"     ");
+            }
         }
         else if (i >= 5 && i < 10)
         {
@@ -647,27 +647,29 @@ void selection(){
         case '1':
             clear();
             printw("Seleccionaste 1: \nDefensor \nEspera mientras se conecta el Invasor");
+            getch();
             break;  
         case '2':
             clear();
-            printw("Seleccionaste 2: \nInvasor \nEspera mientras se conecta el Defensor");   
+            printw("Seleccionaste 2: \nInvasor \nEspera mientras se conecta el Defensor"); 
+            getch();  
             break;         
     }
     
-    getch();
-    /*lightKey = ftok ("/bin/ls", 33);
+   
+    lightKey = ftok ("/bin/ls", 33);
     lightId = semget (lightKey, 10, 0600 | IPC_CREAT);
-    */
+    
 
     switch(option){  
         case '1':
     
-            /*semctl (lightId, 0, SETVAL, 0);
+            semctl (lightId, 0, SETVAL, 0);
             P1.sem_num = 0;
             P1.sem_op = -1;
             P1.sem_flg = 0;
             semop (lightId, &P1, 1);
-            */
+            
             
                
             player=1;
@@ -684,7 +686,7 @@ void selection(){
 
         case '2':
    
-            /*P2.sem_num = 0;
+            P2.sem_num = 0;
             P2.sem_op = 1;
             P2.sem_flg = 0;
 
@@ -692,7 +694,7 @@ void selection(){
             {
                 semop (lightId, &P2, 1);
                 sleep (1);
-            }*/
+            }
             
             player=2;
             sharedMemory[4] = 1;
@@ -772,7 +774,7 @@ int main()
     sharedMemory = (int *) shmat(memory,(char *)0,0);
 
     enemy[0] = 1;
-    /*enemy[1] = 1;
+    enemy[1] = 1;
     enemy[2] = 1;
     enemy[3] = 1;
     enemy[4] = 1;
@@ -781,7 +783,7 @@ int main()
     enemy[7] = 1;
     enemy[8] = 1;
     enemy[9] = 1;
-    enemy[10] = 1;
+    /*enemy[10] = 1;
     enemy[11] = 1;
     enemy[12] = 1;
     enemy[13] = 1;
@@ -793,7 +795,7 @@ int main()
     enemy[19] = 1;*/
 
     sharedMemory[8] = 1;
-    /*sharedMemory[9] = 1;
+    sharedMemory[9] = 1;
     sharedMemory[10] = 1;
     sharedMemory[11] = 1;
     sharedMemory[12] = 1;
@@ -802,7 +804,7 @@ int main()
     sharedMemory[15] = 1;
     sharedMemory[16] = 1;
     sharedMemory[17] = 1;
-    sharedMemory[18] = 1;
+    /*sharedMemory[18] = 1;
     sharedMemory[19] = 1;
     sharedMemory[20] = 1;
     sharedMemory[21] = 1;

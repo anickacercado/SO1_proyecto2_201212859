@@ -1,6 +1,7 @@
 ssh -i "/home/anicka/Descargas/claveServidorSopes1.pem" ubuntu@ec2-18-217-97-70.us-east-2.compute.amazonaws.com
 ssh -i "/home/anicka/clave_201212859.pem" ubuntu@ec2-18-217-97-70.us-east-2.compute.amazonaws.com
 
+cd SO1_201212859/
 cd SO1_proyecto2_201212859/
 gcc main.c -o programa -lncurses -pthread
 sudo chmod +x programa

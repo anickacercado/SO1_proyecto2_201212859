@@ -8,7 +8,7 @@
 #include <sys/sem.h>
 
 
-#if defined(GNU_LIBRARY) && !defined(_SEM_SEMUN_UNDEFINED)
+/*#if defined(GNU_LIBRARY) && !defined(_SEM_SEMUN_UNDEFINED)
 #else
 union semun
 {
@@ -18,11 +18,16 @@ union semun
 	struct seminfo *__buf;
 };
 #endif
+*/
+
 
 #define DELAY 30000
 #ifdef MUTEX
     pthread_mutex_t exclusion;
 #endif
+
+
+int enemy[20];
 
 int menu=0;
 int seconds=0;
@@ -48,7 +53,7 @@ void *timer(void *parametro);
 
 int x=0,y=0,maxX=0,maxY=0;
 
-FILE *sharedFile;
+FILE *sharedFile2;
 key_t keyShared;
 int memory = 0,
 error_hilo=0;
@@ -59,7 +64,6 @@ pthread_t cThread;
 pthread_t fThread;
 
 int TURN =0, live=5, ptos=0, flagVida=5, player=0,OP=0,liveOP=5,ptoOP=0;
-int enemy[20];
 bool point=false;
 
 
@@ -122,8 +126,8 @@ void paintEnemy(){
     {
         if(i < 5)
         {
-            if(enemy[i]==1)
-            {
+            //if(enemy[i]==1)
+            //{
                 if (i!=0)
                 {
                     mvprintw(middleY + 2, (distance * (i+5)) + 1,"\\-.-/");
@@ -132,11 +136,11 @@ void paintEnemy(){
                 {
                     mvprintw(middleY + 2, (distance * (i+5)) + 1,"(/-1-\\)");  
                 }
-            }
-            else
-            {
-                mvprintw(middleY + 2, (distance * (i+5)) + 1,"     ");
-            }
+            //}
+            //else
+            //{
+            //    mvprintw(middleY + 2, (distance * (i+5)) + 1,"     ");
+            //}
         }
         else if (i >= 5 && i < 10)
         {
@@ -184,7 +188,7 @@ void paintEnemy(){
                 }
                 else
                 {
-                    mvprintw(middleY - 1, (distance * (i - 10)) + 1,"(/-3-\\)");   
+                    mvprintw(middleY - 1, (distance * (i - 10)) + 1,"(/-4-\\)");   
                 }
             }
             else
@@ -241,7 +245,7 @@ void control()
 	    case 'a':
             shmdt ((char *)sharedMemory);
             shmctl (memory, IPC_RMID,(struct shmid_ds *)NULL); 
-            unlink ("\tmp\sharedFile"); 
+            unlink ("\tmp\sharedFile2"); 
             endwin();
             return;
             break;
@@ -613,6 +617,19 @@ void paintFrame(){
 
 void selection(){
     
+    int option = 0;
+
+    //Alive enemy
+    /*for(i = 8; i <= 27; i++){
+        sharedMemory[i] = 1;
+        enemy[i-8] = 1;
+    }*/
+    //Alive enemy
+
+    TURN = 1;
+    p1_can_enter=false;
+    p2_can_enter=false;
+
     clear();
     printw("         --------------------------------------\n");
     printw("        |           player 1 Defensor         |\n");
@@ -624,7 +641,7 @@ void selection(){
 
     printw("      Debes esperar mientras se conecta tu oponente\n");
 
-    menu=getch();
+    option = getch();
     
     switch(menu){  
         case '1':
@@ -638,41 +655,36 @@ void selection(){
     }
     
     getch();
-    
-    lightKey = ftok ("/bin/ls", 33);
+    /*lightKey = ftok ("/bin/ls", 33);
     lightId = semget (lightKey, 10, 0600 | IPC_CREAT);
+    */
 
-    switch(menu){  
+    switch(option){  
         case '1':
     
-            semctl (lightId, 0, SETVAL, 0);
+            /*semctl (lightId, 0, SETVAL, 0);
             P1.sem_num = 0;
             P1.sem_op = -1;
             P1.sem_flg = 0;
             semop (lightId, &P1, 1);
-               
+            */
             
+               
             player=1;
             sharedMemory[0] = 1;
             sharedMemory[1] = x;
             sharedMemory[2] = live;
-            sharedMemory[3] = ptos;
-
-            //Alive enemy
-            for(int i = 8; i <= 27; i++){
-                sharedMemory[i] = 1;
-                enemy[i-8] = 1;
-            }
-            //Alive enemy
-
+            sharedMemory[3] = ptos;      
+         
             error_hilo= pthread_create (&bThread, NULL, readP1, NULL);
             error_hilo=pthread_create(&cThread,NULL, writeP2,NULL);
             error_hilo= pthread_create (&fThread, NULL, timer, NULL);
 
             break;  
+
         case '2':
    
-            P2.sem_num = 0;
+            /*P2.sem_num = 0;
             P2.sem_op = 1;
             P2.sem_flg = 0;
 
@@ -680,26 +692,23 @@ void selection(){
             {
                 semop (lightId, &P2, 1);
                 sleep (1);
-            }
+            }*/
             
-
             player=2;
             sharedMemory[4] = 1;
             sharedMemory[5] = x;
             sharedMemory[6] = live;
             sharedMemory[7] = ptos;
-
-            //Alive enemy
-            for(int i = 8; i <= 27; i++){
-                sharedMemory[i] = 1;
-                enemy[i-8] = 1;
-            }
-            //Alive enemy
-
+            
+            
             error_hilo= pthread_create (&bThread, NULL, readP1, NULL);
             error_hilo= pthread_create (&cThread, NULL, writeP2, NULL);
             error_hilo= pthread_create (&fThread, NULL, timer, NULL);
-            break;      
+            
+            break;
+
+            default:
+            break;    
     }
 
 
@@ -712,15 +721,23 @@ void selection(){
 
     shmdt ((char *)sharedMemory);
     shmctl (memory, IPC_RMID,(struct shmid_ds *)NULL); 
-    unlink ("\tmp\sharedFile");
+    unlink ("\tmp\sharedFile2");
 }
 
 void initSharedMemory()
 {
-    sharedFile = fopen("/tmp/sharedFile","w+");
-    keyShared = ftok ("/tmp/sharedFile",33);
+    sharedFile2 = fopen("/tmp/sharedFile2","w+");
+    keyShared = ftok ("/tmp/sharedFile2",33);
     memory = shmget(keyShared,sizeof(int *)*100,0777 | IPC_CREAT);
     sharedMemory = (int *) shmat(memory,(char *)0,0);
+
+    //Alive enemy
+   /* for(i = 8; i <= 27; i++){
+        sharedMemory[i] = 1;
+        enemy[i-8] = 1;
+    }
+    */
+    //Alive enemy
 
     initPlay = false;
     TURN = 1;
@@ -749,7 +766,55 @@ void *timer(void *parametro)
 
 int main()
 {
-    initSharedMemory();
+    sharedFile2 = fopen("/tmp/sharedFile2","w+");
+    keyShared = ftok ("/tmp/sharedFile2",33);
+    memory = shmget(keyShared,sizeof(int *)*100,0777 | IPC_CREAT);
+    sharedMemory = (int *) shmat(memory,(char *)0,0);
+
+    enemy[0] = 1;
+    /*enemy[1] = 1;
+    enemy[2] = 1;
+    enemy[3] = 1;
+    enemy[4] = 1;
+    enemy[5] = 1;
+    enemy[6] = 1;
+    enemy[7] = 1;
+    enemy[8] = 1;
+    enemy[9] = 1;
+    enemy[10] = 1;
+    enemy[11] = 1;
+    enemy[12] = 1;
+    enemy[13] = 1;
+    enemy[14] = 1;
+    enemy[15] = 1;
+    enemy[16] = 1;
+    enemy[17] = 1;
+    enemy[18] = 1;
+    enemy[19] = 1;*/
+
+    sharedMemory[8] = 1;
+    /*sharedMemory[9] = 1;
+    sharedMemory[10] = 1;
+    sharedMemory[11] = 1;
+    sharedMemory[12] = 1;
+    sharedMemory[13] = 1;
+    sharedMemory[14] = 1;
+    sharedMemory[15] = 1;
+    sharedMemory[16] = 1;
+    sharedMemory[17] = 1;
+    sharedMemory[18] = 1;
+    sharedMemory[19] = 1;
+    sharedMemory[20] = 1;
+    sharedMemory[21] = 1;
+    sharedMemory[22] = 1;
+    sharedMemory[23] = 1;
+    sharedMemory[24] = 1;
+    sharedMemory[25] = 1;
+    sharedMemory[26] = 1;
+    sharedMemory[27] = 1;
+    */
+
+    //initSharedMemory();
     initscr();
     curs_set(FALSE);
     getmaxyx(stdscr, maxY, maxX);

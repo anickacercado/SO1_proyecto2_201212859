@@ -7,8 +7,7 @@
 #include <stdbool.h>
 #include <sys/sem.h>
 
-
-/*#if defined(GNU_LIBRARY) && !defined(_SEM_SEMUN_UNDEFINED)
+#if defined(GNU_LIBRARY) && !defined(_SEM_SEMUN_UNDEFINED)
 #else
 union semun
 {
@@ -18,16 +17,14 @@ union semun
 	struct seminfo *__buf;
 };
 #endif
-*/
 
-
-#define DELAY 30000
+#define DELAY 50000
 #ifdef MUTEX
     pthread_mutex_t exclusion;
 #endif
 
 
-int enemy[20];
+int enemy[30];
 
 int menu=0;
 int seconds=0;
@@ -42,7 +39,10 @@ struct sembuf P2;
 key_t lightKey;
 int lightId;
 
+void initSharedMemory();
+void selection();
 void paintFrame();
+void informationPlayers();
 void left();
 void right();
 void control();
@@ -56,12 +56,12 @@ int x=0,y=0,maxX=0,maxY=0;
 FILE *sharedFile2;
 key_t keyShared;
 int memory = 0,
-error_hilo=0;
+currentThread=0;
 char *sharedMemory = NULL;
 pthread_t aThread;
 pthread_t bThread;
 pthread_t cThread;
-pthread_t fThread;
+pthread_t dThread;
 
 int TURN =0, live=5, ptos=0, flagVida=5, player=0,OP=0,liveOP=5,ptoOP=0;
 bool point=false;
@@ -128,14 +128,15 @@ void paintEnemy(){
         {
         if(enemy[i]==1)
             {
-                if (i!=0)
+                mvprintw(middleY + 2, (distance * (i+5)) + 1,"\\-.-/");
+                /*if (i!=0)
                 {
                     mvprintw(middleY + 2, (distance * (i+5)) + 1,"\\-.-/");
                 }
                 else
                 {
                     mvprintw(middleY + 2, (distance * (i+5)) + 1,"(/-1-\\)");  
-                }
+                }*/
             }
             else
             {
@@ -146,14 +147,15 @@ void paintEnemy(){
         {
             if(enemy[i]==1)
             {
-                if (i!=6)
+                mvprintw(middleY + 1, (distance * i) + 1,"\\-.-/");
+                /*if (i!=6)
                 {
                     mvprintw(middleY + 1, (distance * i) + 1,"\\-.-/");
                 }       
                 else
                 {
                     mvprintw(middleY + 1, (distance * i) + 1,"(/-2-\\)");
-                }   
+                }*/   
             }
             else
             {
@@ -164,14 +166,15 @@ void paintEnemy(){
         {
             if(enemy[i]==1)
             {
-                if(i=!12)
+                mvprintw(middleY, (distance * (i-5)) + 1,"\\-.-/");
+                /*if(i=!12)
                 {
                     mvprintw(middleY, (distance * (i-5)) + 1,"\\-.-/");
                 }
                 else
                 {
                     mvprintw(middleY, (distance * (i-5)) + 1,"(/-3-\\)");
-                }
+                }*/
             }
             else
             {
@@ -182,21 +185,22 @@ void paintEnemy(){
         {
             if(enemy[i]==1)
             {
-                if(i=!12)
+                mvprintw(middleY - 1, (distance * (i - 10)) + 1,"\\-.-/");
+                /*if(i=!12)
                 {
                     mvprintw(middleY - 1, (distance * (i - 10)) + 1,"\\-.-/");
                 }
                 else
                 {
                     mvprintw(middleY - 1, (distance * (i - 10)) + 1,"(/-4-\\)");   
-                }
+                }*/
             }
             else
             {
                 mvprintw(middleY - 1, (distance * (i - 10)) + 1,"     ");
             }
         }
-        mvprintw(middleY + 3,  i, "%d", enemy[i]);
+      //  mvprintw(middleY + 3,  i, "%d", enemy[i]);
     }
 }
 
@@ -234,7 +238,7 @@ void control()
 	switch(menu)
 	{
 	    case KEY_UP:
-            error_hilo= pthread_create (&aThread, NULL, attack, NULL);
+            currentThread= pthread_create (&aThread, NULL, attack, NULL);
             break;
 	    case KEY_LEFT:
             left();
@@ -442,6 +446,7 @@ void *writeP2(void *parametro)
             }
         }
         
+        
         sharedMemory[8] = enemy[0];
         sharedMemory[9] = enemy[1];
         sharedMemory[10] = enemy[2];
@@ -462,7 +467,7 @@ void *writeP2(void *parametro)
         sharedMemory[25] = enemy[17];
         sharedMemory[26] = enemy[18];
         sharedMemory[27] = enemy[19];
-
+        
         
         if(player==1)
         {
@@ -510,6 +515,7 @@ void *readP1(void *parametro)
             }
         }
         
+        
         enemy[0]=sharedMemory[8]; 
         enemy[1]=sharedMemory[9]; 
         enemy[2]=sharedMemory[10]; 
@@ -529,7 +535,8 @@ void *readP1(void *parametro)
         enemy[16]=sharedMemory[24]; 
         enemy[17]=sharedMemory[25]; 
         enemy[18]=sharedMemory[26]; 
-        enemy[19]=sharedMemory[27]; 
+        enemy[19]=sharedMemory[27];
+         
 
         if(player == 1)
         {
@@ -598,7 +605,8 @@ void *readP1(void *parametro)
         }
         }
         
-        iniciar()
+        iniciar()    private HomeKeyLocker mHomeKeyLocker;
+
         {
         p1_puede_entrar = false;
         p2_puede_entrar = false;
@@ -626,10 +634,6 @@ void selection(){
     }*/
     //Alive enemy
 
-    TURN = 1;
-    p1_can_enter=false;
-    p2_can_enter=false;
-
     clear();
     printw("         --------------------------------------\n");
     printw("        |           player 1 Defensor         |\n");
@@ -638,29 +642,27 @@ void selection(){
     printw("         --------------------------------------\n");
     printw("        |           player 2 Invasor          |\n");
     printw("         --------------------------------------\n\n\n");
-
     printw("      Debes esperar mientras se conecta tu oponente\n");
+    printw("\n positions %d%d",sharedMemory[27],enemy[19]);
+
 
     option = getch();
     
-    switch(menu){  
+    switch(option){  
         case '1':
             clear();
             printw("Seleccionaste 1: \nDefensor \nEspera mientras se conecta el Invasor");
-            getch();
             break;  
         case '2':
             clear();
             printw("Seleccionaste 2: \nInvasor \nEspera mientras se conecta el Defensor"); 
-            getch();  
             break;         
     }
     
-   
+    getch();
     lightKey = ftok ("/bin/ls", 33);
     lightId = semget (lightKey, 10, 0600 | IPC_CREAT);
     
-
     switch(option){  
         case '1':
     
@@ -670,17 +672,28 @@ void selection(){
             P1.sem_flg = 0;
             semop (lightId, &P1, 1);
             
-            
-               
+             
+            /*clear();
+            printw("option1");
+            getch();*/
+
             player=1;
             sharedMemory[0] = 1;
             sharedMemory[1] = x;
             sharedMemory[2] = live;
-            sharedMemory[3] = ptos;      
+            sharedMemory[3] = ptos;    
+
+            /*clear();
+            printw("option1-2");
+            getch();*/  
          
-            error_hilo= pthread_create (&bThread, NULL, readP1, NULL);
-            error_hilo=pthread_create(&cThread,NULL, writeP2,NULL);
-            error_hilo= pthread_create (&fThread, NULL, timer, NULL);
+            currentThread= pthread_create (&bThread, NULL, readP1, NULL);
+            currentThread=pthread_create(&cThread,NULL, writeP2,NULL);
+            currentThread= pthread_create (&dThread, NULL, timer, NULL);
+
+            /*clear();
+            printw("option1-3");
+            getch();*/ 
 
             break;  
 
@@ -695,6 +708,10 @@ void selection(){
                 semop (lightId, &P2, 1);
                 sleep (1);
             }
+
+            /*clear();
+            printw("option1");
+            getch();*/
             
             player=2;
             sharedMemory[4] = 1;
@@ -702,10 +719,9 @@ void selection(){
             sharedMemory[6] = live;
             sharedMemory[7] = ptos;
             
-            
-            error_hilo= pthread_create (&bThread, NULL, readP1, NULL);
-            error_hilo= pthread_create (&cThread, NULL, writeP2, NULL);
-            error_hilo= pthread_create (&fThread, NULL, timer, NULL);
+            currentThread= pthread_create (&bThread, NULL, readP1, NULL);
+            currentThread= pthread_create (&cThread, NULL, writeP2, NULL);
+            currentThread= pthread_create (&dThread, NULL, timer, NULL);
             
             break;
 
@@ -718,8 +734,16 @@ void selection(){
 	pthread_mutex_init (&exclusion, NULL);
     #endif
     
+    /*clear();
+    printw("option1-delay");
+    getch();*/ 
+
     usleep(DELAY); 
     control();
+
+    /*clear();
+    printw("option1-Postdelay");
+    getch();*/ 
 
     shmdt ((char *)sharedMemory);
     shmctl (memory, IPC_RMID,(struct shmid_ds *)NULL); 
@@ -768,31 +792,14 @@ void *timer(void *parametro)
 
 int main()
 {
+    initscr();
+    curs_set(FALSE);
+    getmaxyx(stdscr, maxY, maxX);
+
     sharedFile2 = fopen("/tmp/sharedFile2","w+");
     keyShared = ftok ("/tmp/sharedFile2",33);
     memory = shmget(keyShared,sizeof(int *)*100,0777 | IPC_CREAT);
     sharedMemory = (int *) shmat(memory,(char *)0,0);
-
-    enemy[0] = 1;
-    enemy[1] = 1;
-    enemy[2] = 1;
-    enemy[3] = 1;
-    enemy[4] = 1;
-    enemy[5] = 1;
-    enemy[6] = 1;
-    enemy[7] = 1;
-    enemy[8] = 1;
-    enemy[9] = 1;
-    /*enemy[10] = 1;
-    enemy[11] = 1;
-    enemy[12] = 1;
-    enemy[13] = 1;
-    enemy[14] = 1;
-    enemy[15] = 1;
-    enemy[16] = 1;
-    enemy[17] = 1;
-    enemy[18] = 1;
-    enemy[19] = 1;*/
 
     sharedMemory[8] = 1;
     sharedMemory[9] = 1;
@@ -804,7 +811,7 @@ int main()
     sharedMemory[15] = 1;
     sharedMemory[16] = 1;
     sharedMemory[17] = 1;
-    /*sharedMemory[18] = 1;
+    sharedMemory[18] = 1;
     sharedMemory[19] = 1;
     sharedMemory[20] = 1;
     sharedMemory[21] = 1;
@@ -814,12 +821,32 @@ int main()
     sharedMemory[25] = 1;
     sharedMemory[26] = 1;
     sharedMemory[27] = 1;
-    */
 
+    enemy[0] = 1;
+    enemy[1] = 1;
+    enemy[2] = 1;
+    enemy[3] = 1;
+    enemy[4] = 1;
+    enemy[5] = 1;
+    enemy[6] = 1;
+    enemy[7] = 1;
+    enemy[8] = 1;
+    enemy[9] = 1;
+    enemy[10] = 1;
+    enemy[11] = 1;
+    enemy[12] = 1;
+    enemy[13] = 1;
+    enemy[14] = 1;
+    enemy[15] = 1;
+    enemy[16] = 1;
+    enemy[17] = 1;
+    enemy[18] = 1;
+    enemy[19] = 1;
+
+    TURN = 1;
+    p1_can_enter=false;
+    p2_can_enter=false;
     //initSharedMemory();
-    initscr();
-    curs_set(FALSE);
-    getmaxyx(stdscr, maxY, maxX);
 
     printw("                 --------------------- \n");
     printw("                *                     *\n");
@@ -835,6 +862,7 @@ int main()
     printw("         --------------------------------------\n\n\n");
 
     printw("                Anicka Cercado - 201212859");
+    printw("\n positions %d%d",sharedMemory[27],enemy[19]);
 
     menu=getch();
 

@@ -31,3 +31,9 @@ sudo chmod +x programa
             Clave = ftok ("/bin/ls", 33);
             Id_Semaforo = semget (Clave, 10, 0600 | IPC_CREAT);
             */
+
+
+void initSharedMemory();
+void selection();
+void paintFrame();
+void informationPlayers();
